@@ -1,12 +1,20 @@
 import 'dart:io';
+
+import 'package:accidentreporter/Provider/userProvider.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'dart:async';
 import 'package:accidentreporter/styles.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:tflite/tflite.dart';
+import 'package:image/image.dart' as Im;
 
 class ReportAccident extends StatefulWidget {
   @override
@@ -27,6 +35,7 @@ class _ReportAccidentState extends State<ReportAccident> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
@@ -86,12 +95,13 @@ class _ReportAccidentState extends State<ReportAccident> {
                           ),
                           Text("Uploaded number plate image"),
                           OutlineButton(
-                              onPressed: () {
-                                setState(() {
-                                  pickedFile = null;
-                                });
-                              },
-                              child: Text("Cancel"))
+                            onPressed: () {
+                              setState(() {
+                                pickedFile = null;
+                              });
+                            },
+                            child: Text("Cancel"),
+                          )
                         ],
                       ),
               ),
@@ -143,7 +153,8 @@ class _ReportAccidentState extends State<ReportAccident> {
                       child: CircularProgressIndicator(),
                     )
                   : RaisedButton(
-                      onPressed: (pickedFile != null &&
+                      onPressed: (carNumberConttroller.text.trim().length >=
+                                  13 &&
                               pickedAccidentFile != null)
                           ? () async {
                               setState(() {
@@ -153,11 +164,12 @@ class _ReportAccidentState extends State<ReportAccident> {
                               String text = await channel.invokeMethod(
                                   "startModel",
                                   {"imagePath": pickedAccidentFile.path});
-                              setState(() {
-                                isLoading = false;
-                              });
+
                               if (text != null) {
                                 if (text == "noncar") {
+                                  setState(() {
+                                    isLoading = false;
+                                  });
                                   AwesomeDialog(
                                       context: context,
                                       dialogType: DialogType.ERROR,
@@ -166,14 +178,9 @@ class _ReportAccidentState extends State<ReportAccident> {
                                     ..show();
                                 }
                                 if (text == "car") {
-                                  AwesomeDialog(
-                                      context: context,
-                                      dialogType: DialogType.SUCCES,
-                                      title: "Image is genuine",
-                                      body: Text("Image is genuine"))
-                                    ..show();
+                                  createReport(userProvider.user);
                                 }
-                              }
+                              } else {}
                             }
                           : null,
                       splashColor: Colors.blue,
@@ -192,6 +199,86 @@ class _ReportAccidentState extends State<ReportAccident> {
     );
   }
 
+  void createReport(User user) {
+    FirebaseFirestore.instance
+        .collection("Users")
+        .doc(user.uid)
+        .get()
+        .then((value) {
+      if (value.exists) {
+        String pincode = value.data()['pincode'];
+        String adminArea = value.data()['adminArea'];
+        String subAdminArea = value.data()['subAdminArea'];
+        FirebaseFirestore.instance
+            .collection("Locations")
+            .doc(adminArea)
+            .collection(adminArea)
+            .doc(subAdminArea)
+            .collection(subAdminArea)
+            .doc(pincode)
+            .collection(pincode)
+            .doc(user.uid)
+            .get()
+            .then((locationData) async {
+          final latitude = locationData.data()['latitude'];
+          final longitude = locationData.data()['longitude'];
+
+          File accidentImage =
+              await compressImage(new File(pickedAccidentFile.path));
+          UploadTask uploadTask = FirebaseStorage.instance
+              .ref()
+              .child("AccidentImage_${carNumberConttroller.text.trim()}")
+              .putFile(accidentImage);
+
+          uploadTask.whenComplete(() async {
+            String url = await uploadTask.snapshot.ref.getDownloadURL();
+            FirebaseFirestore.instance
+                .collection("AccidentReports")
+                .doc(pincode)
+                .collection(pincode)
+                .doc(carNumberConttroller.text.trim())
+                .set({
+              'carNumber': carNumberConttroller.text.trim(),
+              'timestamp': DateTime.now().millisecondsSinceEpoch,
+              'latitude': latitude,
+              'longitude': longitude,
+              'accidentImageUrl': url,
+              'isFacilityProvided':false
+            }).then((value) {
+              setState(() {
+                isLoading = false;
+                carNumberConttroller.text = "";
+                pickedFile = null;
+                pickedAccidentFile = null;
+              });
+              AwesomeDialog(
+                  context: context,
+                  dialogType: DialogType.SUCCES,
+                  body: Text(
+                    "Accident Report has been successfully submited. We have informed the nearby hospitals",
+                    textAlign: TextAlign.center,
+                  ))
+                ..show();
+            });
+          });
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    });
+  }
+
+  Future<File> compressImage(File file) async {
+    final tempDir = await getTemporaryDirectory();
+    final path = tempDir.path;
+    Im.Image image = Im.decodeImage(file.readAsBytesSync());
+    final compressedImage =
+        File("$path/img_${DateTime.now().millisecondsSinceEpoch}.jpg")
+          ..writeAsBytesSync(Im.encodeJpg(image, quality: 80));
+    return compressedImage;
+  }
   _getNumberPlate(String filePath) async {
     final Completer<Size> completer = Completer<Size>();
     Image _image = Image.file(
@@ -242,4 +329,5 @@ class _ReportAccidentState extends State<ReportAccident> {
     });
     print('carnumber- $carNumber');
   }
+
 }
