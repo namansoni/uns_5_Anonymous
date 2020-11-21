@@ -53,58 +53,77 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final width = MediaQuery.of(context).size.width;
-    return Scaffold(
-      drawer: Drawer(
-        child: Column(
-          children: [
-            ListTile(
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
-              },
-              title: Text("Sign out"),
-            )
-          ],
-        ),
-      ),
-      appBar: AppBar(
-        title: Text(userProvider.userModel.userType == "user" ? "User" : "Hospital"),
-        backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.person),
-            onPressed: () {
-              Navigator.of(context)
-                  .push(MaterialPageRoute(builder: (ctx) => OnBoardForm()));
-            },
-          ),
-        ],
-      ),
-      body:userProvider.userModel.userType== "user"
-          ? Container(
-              width: width,
+    return FutureBuilder(
+        future: FirebaseFirestore.instance
+            .collection('Users')
+            .doc(userProvider.user.uid)
+            .get(),
+        builder: (ctx, user) {
+          if (!user.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (user.hasError) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          Map userData = user.data.data();
+          String userType = userData['userType'];
+          return Scaffold(
+            drawer: Drawer(
               child: Column(
                 children: [
-                  SizedBox(
-                    height: 20,
-                  ),
-                  RaisedButton(
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => ReportAccident()));
+                  ListTile(
+                    onTap: () async {
+                      await FirebaseAuth.instance.signOut();
                     },
-                    splashColor: Colors.blue,
-                    elevation: 6.0,
-                    color: Colors.black,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50)),
-                    child: Text(
-                      "Report an Accident",
-                      style: buttonText,
-                    ),
-                  ),
+                    title: Text("Sign out"),
+                  )
                 ],
-              ))
-          : HospitalPage(),
-    );
+              ),
+            ),
+            appBar: AppBar(
+              title: Text(userType == "user" ? "User" : "Hospital"),
+              backgroundColor: Colors.black,
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.person),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                        MaterialPageRoute(builder: (ctx) => OnBoardForm()));
+                  },
+                ),
+              ],
+            ),
+            body: userType == "user"
+                ? Container(
+                    width: width,
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 20,
+                        ),
+                        RaisedButton(
+                          onPressed: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => ReportAccident()));
+                          },
+                          splashColor: Colors.blue,
+                          elevation: 6.0,
+                          color: Colors.black,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50)),
+                          child: Text(
+                            "Report an Accident",
+                            style: buttonText,
+                          ),
+                        ),
+                      ],
+                    ))
+                : HospitalPage(),
+          );
+        });
   }
 }

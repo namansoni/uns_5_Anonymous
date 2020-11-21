@@ -243,7 +243,7 @@ class _ReportAccidentState extends State<ReportAccident> {
               'latitude': latitude,
               'longitude': longitude,
               'accidentImageUrl': url,
-              'isFacilityProvided':false
+              'isFacilityProvided': false
             }).then((value) {
               setState(() {
                 isLoading = false;
@@ -279,6 +279,7 @@ class _ReportAccidentState extends State<ReportAccident> {
           ..writeAsBytesSync(Im.encodeJpg(image, quality: 80));
     return compressedImage;
   }
+
   _getNumberPlate(String filePath) async {
     final Completer<Size> completer = Completer<Size>();
     Image _image = Image.file(
@@ -306,7 +307,7 @@ class _ReportAccidentState extends State<ReportAccident> {
         await textRecognizer.processImage(visionImage);
 
     String pattern =
-        r'^[A-Z]{2}[ -][0-9]{1,2}(?: [A-Z])?(?: [A-Z]{2})? [0-9]{4}$';
+        r'^[A-Z]{2}[0-9]{1,2}(?:[A-Z])?(?:[A-Z]{2})?[0-9]{4}|[A-Z]{2}[ -][0-9]{1,2}(?: [A-Z])?(?: [A-Z]{2})? [0-9]{4}$';
     RegExp regEx = RegExp(pattern);
 
     String numberPlate = "";
@@ -329,5 +330,4 @@ class _ReportAccidentState extends State<ReportAccident> {
     });
     print('carnumber- $carNumber');
   }
-
 }
