@@ -30,6 +30,12 @@ android {
 
     lintOptions {
         disable 'InvalidPackage'
+        checkReleaseBuilds false
+
+    }
+    aaptOptions {
+        noCompress 'tflite'
+        noCompress 'lite'
     }
 
     defaultConfig {
@@ -59,4 +65,5 @@ dependencies{
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.android.support:multidex:1.0.3'
     implementation 'androidx.browser:browser:1.2.0'
+    implementation 'com.google.mlkit:image-labeling-automl:16.0.0'
 }

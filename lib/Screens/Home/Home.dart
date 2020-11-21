@@ -39,6 +39,7 @@ class _HomeState extends State<Home> {
       ),
       appBar: AppBar(
         title: Text(userType == "user" ? "User" : "Hospital"),
+        backgroundColor: Colors.black,
         actions: [
           IconButton(
             icon: Icon(Icons.person),
