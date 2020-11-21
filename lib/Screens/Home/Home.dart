@@ -2,11 +2,8 @@ import 'dart:io';
 
 import 'package:accidentreporter/Models/userModel.dart';
 import 'package:accidentreporter/Provider/userProvider.dart';
-<<<<<<< HEAD
 import 'package:accidentreporter/Screens/onboading.dart';
-=======
 import 'package:accidentreporter/Screens/ReportAccident/reportAccident.dart';
->>>>>>> f71ec0fc71a3d66211b5f1c9881e31795fe11cd8
 import 'package:accidentreporter/main.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';

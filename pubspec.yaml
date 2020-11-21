@@ -55,6 +55,7 @@ dependencies:
   timeago: ^2.0.28
   image_picker: ^0.6.7+14
   tflite: ^1.1.1
+  firebase_ml_vision: ^0.9.3+8
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,6 @@
 import 'dart:io';
-
+import 'package:firebase_ml_vision/firebase_ml_vision.dart';
+import 'dart:async';
 import 'package:accidentreporter/styles.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class _ReportAccidentState extends State<ReportAccident> {
   TextEditingController carNumberConttroller = TextEditingController();
   List outputs;
   bool isLoading = false;
+  String carNumber;
   @override
   void initState() {
     // TODO: implement initState
@@ -32,7 +34,7 @@ class _ReportAccidentState extends State<ReportAccident> {
         backgroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
-              child: Container(
+        child: Container(
           width: width,
           child: Column(
             children: [
@@ -64,6 +66,7 @@ class _ReportAccidentState extends State<ReportAccident> {
                           final picker = ImagePicker();
                           pickedFile =
                               await picker.getImage(source: ImageSource.camera);
+                          _getNumberPlate(pickedFile.path);
                           if (pickedFile != null) {
                             setState(() {});
                           }
@@ -92,19 +95,16 @@ class _ReportAccidentState extends State<ReportAccident> {
                         ],
                       ),
               ),
-              SizedBox(height:5),
+              SizedBox(height: 5),
               Container(
-                width: width*0.8,
+                width: width * 0.8,
                 height: 200,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey[400]
-                  ),
-                  borderRadius: BorderRadius.circular(10)
-                ),
+                    border: Border.all(color: Colors.grey[400]),
+                    borderRadius: BorderRadius.circular(10)),
                 child: pickedAccidentFile == null
                     ? OutlineButton(
-                      shape: RoundedRectangleBorder(
+                        shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                         onPressed: () async {
                           final picker = ImagePicker();
@@ -117,7 +117,7 @@ class _ReportAccidentState extends State<ReportAccident> {
                         child: Text("Upload Accident Image"),
                       )
                     : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
                             child: Image.file(
@@ -143,39 +143,39 @@ class _ReportAccidentState extends State<ReportAccident> {
                       child: CircularProgressIndicator(),
                     )
                   : RaisedButton(
-                      onPressed:
-                          (pickedFile != null && pickedAccidentFile != null)
-                              ? () async {
-                                  setState(() {
-                                    isLoading = true;
-                                  });
-                                  MethodChannel channel = MethodChannel("Model");
-                                  String text = await channel.invokeMethod(
-                                      "startModel",
-                                      {"imagePath": pickedAccidentFile.path});
-                                  setState(() {
-                                    isLoading = false;
-                                  });
-                                  if (text != null) {
-                                    if (text == "noncar") {
-                                      AwesomeDialog(
-                                          context: context,
-                                          dialogType: DialogType.ERROR,
-                                          title: "Image is not genuine",
-                                          body: Text("Image is not genuine"))
-                                        ..show();
-                                    }
-                                    if (text == "car") {
-                                      AwesomeDialog(
-                                          context: context,
-                                          dialogType: DialogType.SUCCES,
-                                          title: "Image is genuine",
-                                          body: Text("Image is genuine"))
-                                        ..show();
-                                    }
-                                  }
+                      onPressed: (pickedFile != null &&
+                              pickedAccidentFile != null)
+                          ? () async {
+                              setState(() {
+                                isLoading = true;
+                              });
+                              MethodChannel channel = MethodChannel("Model");
+                              String text = await channel.invokeMethod(
+                                  "startModel",
+                                  {"imagePath": pickedAccidentFile.path});
+                              setState(() {
+                                isLoading = false;
+                              });
+                              if (text != null) {
+                                if (text == "noncar") {
+                                  AwesomeDialog(
+                                      context: context,
+                                      dialogType: DialogType.ERROR,
+                                      title: "Image is not genuine",
+                                      body: Text("Image is not genuine"))
+                                    ..show();
                                 }
-                              : null,
+                                if (text == "car") {
+                                  AwesomeDialog(
+                                      context: context,
+                                      dialogType: DialogType.SUCCES,
+                                      title: "Image is genuine",
+                                      body: Text("Image is genuine"))
+                                    ..show();
+                                }
+                              }
+                            }
+                          : null,
                       splashColor: Colors.blue,
                       elevation: 6.0,
                       color: Colors.black,
@@ -190,5 +190,56 @@ class _ReportAccidentState extends State<ReportAccident> {
         ),
       ),
     );
+  }
+
+  _getNumberPlate(String filePath) async {
+    final Completer<Size> completer = Completer<Size>();
+    Image _image = Image.file(
+      new File(filePath),
+    );
+    _image.image.resolve(const ImageConfiguration()).addListener(
+      ImageStreamListener((ImageInfo info, bool _) {
+        completer.complete(Size(
+          info.image.width.toDouble(),
+          info.image.height.toDouble(),
+        ));
+      }),
+    );
+
+    final Size imageSize = await completer.future;
+    final File imageFile = File(filePath);
+
+    final FirebaseVisionImage visionImage =
+        FirebaseVisionImage.fromFile(imageFile);
+
+    final TextRecognizer textRecognizer =
+        FirebaseVision.instance.textRecognizer();
+
+    final VisionText visionText =
+        await textRecognizer.processImage(visionImage);
+
+    String pattern =
+        r'^[A-Z]{2}[ -][0-9]{1,2}(?: [A-Z])?(?: [A-Z]{2})? [0-9]{4}$';
+    RegExp regEx = RegExp(pattern);
+
+    String mailAddress = "";
+    List<TextElement> _elements = [];
+    for (TextBlock block in visionText.blocks) {
+      for (TextLine line in block.lines) {
+        print(line.text);
+        if (regEx.hasMatch(line.text)) {
+          mailAddress += line.text + '\n';
+          for (TextElement element in line.elements) {
+            _elements.add(element);
+          }
+        }
+      }
+    }
+
+    setState(() {
+      carNumber = mailAddress;
+      carNumberConttroller.text = carNumber;
+    });
+    print('emails- $carNumber');
   }
 }
