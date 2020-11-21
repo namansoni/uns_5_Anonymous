@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:accidentreporter/Provider/userProvider.dart';
+import 'package:firebase_ml_vision/firebase_ml_vision.dart';
+import 'dart:async';
 import 'package:accidentreporter/styles.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,6 +26,7 @@ class _ReportAccidentState extends State<ReportAccident> {
   TextEditingController carNumberConttroller = TextEditingController();
   List outputs;
   bool isLoading = false;
+  String carNumber;
   @override
   void initState() {
     // TODO: implement initState
@@ -72,6 +75,7 @@ class _ReportAccidentState extends State<ReportAccident> {
                           final picker = ImagePicker();
                           pickedFile =
                               await picker.getImage(source: ImageSource.camera);
+                          _getNumberPlate(pickedFile.path);
                           if (pickedFile != null) {
                             setState(() {});
                           }
@@ -275,4 +279,55 @@ class _ReportAccidentState extends State<ReportAccident> {
           ..writeAsBytesSync(Im.encodeJpg(image, quality: 80));
     return compressedImage;
   }
+  _getNumberPlate(String filePath) async {
+    final Completer<Size> completer = Completer<Size>();
+    Image _image = Image.file(
+      new File(filePath),
+    );
+    _image.image.resolve(const ImageConfiguration()).addListener(
+      ImageStreamListener((ImageInfo info, bool _) {
+        completer.complete(Size(
+          info.image.width.toDouble(),
+          info.image.height.toDouble(),
+        ));
+      }),
+    );
+
+    final Size imageSize = await completer.future;
+    final File imageFile = File(filePath);
+
+    final FirebaseVisionImage visionImage =
+        FirebaseVisionImage.fromFile(imageFile);
+
+    final TextRecognizer textRecognizer =
+        FirebaseVision.instance.textRecognizer();
+
+    final VisionText visionText =
+        await textRecognizer.processImage(visionImage);
+
+    String pattern =
+        r'^[A-Z]{2}[ -][0-9]{1,2}(?: [A-Z])?(?: [A-Z]{2})? [0-9]{4}$';
+    RegExp regEx = RegExp(pattern);
+
+    String mailAddress = "";
+    List<TextElement> _elements = [];
+    for (TextBlock block in visionText.blocks) {
+      for (TextLine line in block.lines) {
+        print(line.text);
+        if (regEx.hasMatch(line.text)) {
+          mailAddress += line.text + '\n';
+          for (TextElement element in line.elements) {
+            _elements.add(element);
+          }
+        }
+      }
+    }
+
+    setState(() {
+      carNumber = mailAddress;
+      carNumberConttroller.text = carNumber;
+    });
+    print('emails- $carNumber');
+  }
+
 }

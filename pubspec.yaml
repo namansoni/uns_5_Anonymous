@@ -58,6 +58,7 @@ dependencies:
   firebase_storage: ^5.0.1
   image:
   path_provider:
+  firebase_ml_vision: ^0.9.3+8
 
 dev_dependencies:
   flutter_test:
