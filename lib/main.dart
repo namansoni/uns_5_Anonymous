@@ -1,5 +1,6 @@
-
 import 'package:accidentreporter/Provider/userProvider.dart';
+import 'package:accidentreporter/Screens/FirstTime/hospital.dart';
+import 'package:accidentreporter/Screens/FirstTime/user.dart';
 import 'package:accidentreporter/Screens/Login/login.dart';
 import 'package:accidentreporter/styles.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
@@ -11,7 +12,9 @@ import 'package:provider/provider.dart';
 
 import 'Screens/Home/Home.dart';
 
-void main() async{
+String userType = "user";
+bool isFirstTime=false;
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MyApp());
@@ -31,11 +34,11 @@ class _MyAppState extends State<MyApp> {
           value: UserProvider(),
         ),
       ],
-      child: MaterialApp(
-          home: OnBoarding() ),
+      child: MaterialApp(home: OnBoarding()),
     );
   }
 }
+
 class OnBoarding extends StatefulWidget {
   @override
   _OnBoardingState createState() => _OnBoardingState();
@@ -72,7 +75,9 @@ class _OnBoardingState extends State<OnBoarding> {
       isRegistered = true;
       userProvider.registerUserChange();
     }
-    return userProvider.issignedIn ? Home(userProvider.user) : Login();
+    return userProvider.issignedIn
+        ? Home(userProvider.userModel)
+        : Login();
   }
 
   void getPermissions() async {
@@ -106,4 +111,3 @@ class _OnBoardingState extends State<OnBoarding> {
     )..show();
   }
 }
-

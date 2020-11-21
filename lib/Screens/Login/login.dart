@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:accidentreporter/main.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:accidentreporter/styles.dart';
 import 'package:flushbar/flushbar.dart';
@@ -53,6 +54,7 @@ class _LoginState extends State<Login> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50)),
                     onPressed: () {
+                      userType="user";
                       isLoading = false;
                       iscodeSent = false;
                       issigningIn = false;
@@ -77,6 +79,7 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
+                SizedBox(height: 50,),
                 Container(
                   width: 200,
                   height: 40,
@@ -88,6 +91,7 @@ class _LoginState extends State<Login> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50)),
                     onPressed: () {
+                      userType="hospital";
                       isLoading = false;
                       iscodeSent = false;
                       issigningIn = false;
