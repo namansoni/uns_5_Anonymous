@@ -1,5 +1,6 @@
 import 'package:accidentreporter/Models/userModel.dart';
 import 'package:accidentreporter/Provider/userProvider.dart';
+import 'package:accidentreporter/Screens/onboading.dart';
 import 'package:accidentreporter/main.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -35,7 +36,10 @@ class _HomeState extends State<Home> {
         actions: [
           IconButton(
             icon: Icon(Icons.person),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (ctx) => OnBoardForm()));
+            },
           ),
         ],
       ),

@@ -6,11 +6,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../Models/userModel.dart';
+
 class UserProvider extends ChangeNotifier {
   User user;
   bool issignedIn = false;
   FirebaseAuth auth = FirebaseAuth.instance;
-  UserModel userModel=UserModel();
+  UserModel userModel = UserModel();
+  List emergencyContacts = [];
   void registerUserChange() {
     auth.authStateChanges().listen((User user1) {
       if (user1 != null) {
@@ -25,33 +28,38 @@ class UserProvider extends ChangeNotifier {
             .get()
             .then((value) async {
           if (!value.exists) {
-            
-            isFirstTime=true;
-            print("First time"+isFirstTime.toString());
+            isFirstTime = true;
+            print("First time" + isFirstTime.toString());
             FirebaseFirestore.instance.collection("Users").doc(user.uid).set({
               'uid': user.uid,
               'phoneno': user.phoneNumber,
               'userType': userType
-            });
-            UserModel userModel1=UserModel(
+            }, SetOptions(merge: true));
+            UserModel userModel1 = UserModel(
                 phoneNumber: user.phoneNumber,
                 uid: user.uid,
                 userType: userType);
-            userModel=userModel1;
-            
+            userModel = userModel1;
           } else {
             print("value exists");
             print(value.data()['userType']);
-            userType=value.data()['userType'];
-            UserModel userModel1=UserModel(
+            userType = value.data()['userType'];
+            UserModel userModel1 = UserModel(
               phoneNumber: user.phoneNumber,
               uid: user.uid,
-              userType: value.data()['userType']
+              userType: value.data()['userType'],
+              name: value.data()['name'],
+              address: value.data()['address'],
+              vehicleNumber: value.data()['vehicleNumber'],
             );
-            userModel=userModel1;
+            userModel = userModel1;
+            emergencyContacts =
+                (value.data()['emergencyContacts'] as List) ?? [];
+            print(emergencyContacts);
             print(userModel.phoneNumber);
             print(userModel.uid);
             print(userModel.userType);
+            print(issignedIn);
           }
         });
       } else {
@@ -60,5 +68,31 @@ class UserProvider extends ChangeNotifier {
 
       notifyListeners();
     });
+  }
+
+  updateContacts() async {
+    await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(user.uid)
+        .get()
+        .then((value) => emergencyContacts =
+            (value.data()['emergencyContacts'] as List) ?? []);
+    notifyListeners();
+  }
+
+  updateDetails() async {
+    await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(user.uid)
+        .get()
+        .then((value) => userModel = UserModel(
+              phoneNumber: user.phoneNumber,
+              uid: user.uid,
+              userType: value.data()['userType'],
+              name: value.data()['name'],
+              address: value.data()['address'],
+              vehicleNumber: value.data()['vehicleNumber'],
+            ));
+    notifyListeners();
   }
 }
