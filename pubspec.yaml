@@ -53,6 +53,7 @@ dependencies:
   firebase_messaging:
   shared_preferences: ^0.5.12+4
   timeago: ^2.0.28
+  image_picker: ^0.6.7+14
 
 dev_dependencies:
   flutter_test:
