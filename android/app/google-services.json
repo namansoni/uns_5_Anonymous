@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "464474191630",
+    "firebase_url": "https://roadaccident-189f0.firebaseio.com",
+    "project_id": "roadaccident-189f0",
+    "storage_bucket": "roadaccident-189f0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:464474191630:android:44ee682729e9811bb3c95f",
+        "android_client_info": {
+          "package_name": "com.example.accidentreporter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "464474191630-rph3qalsschg468csl98a374tnbd0ohn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.accidentreporter",
+            "certificate_hash": "11e677d4e09fc98a24501b51cc10e8d84f71515b"
+          }
+        },
+        {
+          "client_id": "464474191630-hlvrpc40sofe0abvf9gfc9t738ukkotm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdQjD284j-WeuWvmnm2nd9YY2IxOm_9wU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "464474191630-hlvrpc40sofe0abvf9gfc9t738ukkotm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
