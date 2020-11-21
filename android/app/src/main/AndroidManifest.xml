@@ -55,5 +55,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <receiver android:name=".MyLocationService"/>
+        <service android:name=".MyLocationForegroundService"></service>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyALTKmvQ7RUyR9HNIkX7oEx83KOE2GJkh8" />
     </application>
 </manifest>

@@ -55,6 +55,9 @@ dependencies:
   timeago: ^2.0.28
   image_picker: ^0.6.7+14
   tflite: ^1.1.1
+  firebase_storage: ^5.0.1
+  image:
+  path_provider:
 
 dev_dependencies:
   flutter_test:

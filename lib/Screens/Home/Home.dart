@@ -2,28 +2,52 @@ import 'dart:io';
 
 import 'package:accidentreporter/Models/userModel.dart';
 import 'package:accidentreporter/Provider/userProvider.dart';
-<<<<<<< HEAD
-import 'package:accidentreporter/Screens/onboading.dart';
-=======
+import 'package:accidentreporter/Screens/Home/HospitalPage.dart';
 import 'package:accidentreporter/Screens/ReportAccident/reportAccident.dart';
->>>>>>> f71ec0fc71a3d66211b5f1c9881e31795fe11cd8
 import 'package:accidentreporter/main.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../styles.dart';
+import '../onboading.dart';
 
 class Home extends StatefulWidget {
   UserModel userModel;
-  Home(this.userModel);
+  User user;
+  Home(this.userModel, this.user);
   @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    callMethodChannels();
+  }
+
+  void callMethodChannels() async {
+    MethodChannel channel = MethodChannel("Model");
+    if (userType == "user") {
+      print(widget.user.uid);
+      await channel.invokeMethod("startLocation", {"uid": widget.user.uid});
+    } else {
+      final pincode = await channel.invokeMethod("getpincode");
+      if (pincode != null) {
+        FirebaseFirestore.instance
+            .collection("Users")
+            .doc(widget.user.uid)
+            .set({'pincode': pincode}, SetOptions(merge: true));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
@@ -42,7 +66,7 @@ class _HomeState extends State<Home> {
         ),
       ),
       appBar: AppBar(
-        title: Text(userType == "user" ? "User" : "Hospital"),
+        title: Text(userProvider.userModel.userType == "user" ? "User" : "Hospital"),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
@@ -54,7 +78,7 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-      body: userType == "user"
+      body:userProvider.userModel.userType== "user"
           ? Container(
               width: width,
               child: Column(
@@ -79,9 +103,7 @@ class _HomeState extends State<Home> {
                   ),
                 ],
               ))
-          : Container(
-              child: Text("hospital" + userProvider.user.uid.toString()),
-            ),
+          : HospitalPage(),
     );
   }
 }

@@ -76,7 +76,7 @@ class _OnBoardingState extends State<OnBoarding> {
       userProvider.registerUserChange();
     }
     return userProvider.issignedIn
-        ? Home(userProvider.userModel)
+        ? Home(userProvider.userModel,userProvider.user)
         : Login();
   }
 
