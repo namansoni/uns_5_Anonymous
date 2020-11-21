@@ -1,11 +1,20 @@
+import 'dart:io';
+
 import 'package:accidentreporter/Models/userModel.dart';
 import 'package:accidentreporter/Provider/userProvider.dart';
+<<<<<<< HEAD
 import 'package:accidentreporter/Screens/onboading.dart';
+=======
+import 'package:accidentreporter/Screens/ReportAccident/reportAccident.dart';
+>>>>>>> f71ec0fc71a3d66211b5f1c9881e31795fe11cd8
 import 'package:accidentreporter/main.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+
+import '../../styles.dart';
 
 class Home extends StatefulWidget {
   UserModel userModel;
@@ -18,6 +27,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       drawer: Drawer(
         child: Column(
@@ -33,6 +43,7 @@ class _HomeState extends State<Home> {
       ),
       appBar: AppBar(
         title: Text(userType == "user" ? "User" : "Hospital"),
+        backgroundColor: Colors.black,
         actions: [
           IconButton(
             icon: Icon(Icons.person),
@@ -45,11 +56,31 @@ class _HomeState extends State<Home> {
       ),
       body: userType == "user"
           ? Container(
-              child:
-                  Text("user" + userProvider.userModel.phoneNumber.toString()),
-            )
+              width: width,
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 20,
+                  ),
+                  RaisedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => ReportAccident()));
+                    },
+                    splashColor: Colors.blue,
+                    elevation: 6.0,
+                    color: Colors.black,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50)),
+                    child: Text(
+                      "Report an Accident",
+                      style: buttonText,
+                    ),
+                  ),
+                ],
+              ))
           : Container(
-              child: Text("hospital" + userProvider.userModel.uid.toString()),
+              child: Text("hospital" + userProvider.user.uid.toString()),
             ),
     );
   }
