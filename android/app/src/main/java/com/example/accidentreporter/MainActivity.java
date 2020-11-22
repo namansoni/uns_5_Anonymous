@@ -69,6 +69,7 @@ public class MainActivity extends FlutterActivity {
                                         // to determine an appropriate value.
                                         .build();
                         ImageLabeler labeler = ImageLabeling.getClient(autoMLImageLabelerOptions);
+                        System.out.println("Model started");
                         InputImage image;
                         try {
                             image = InputImage.fromFilePath(this, Uri.fromFile(new File(imagePath)));
