@@ -243,7 +243,7 @@ class _ReportAccidentState extends State<ReportAccident> {
               'latitude': latitude,
               'longitude': longitude,
               'accidentImageUrl': url,
-              'isFacilityProvided':false
+              'isFacilityProvided': false
             }).then((value) {
               setState(() {
                 isLoading = false;
@@ -279,6 +279,7 @@ class _ReportAccidentState extends State<ReportAccident> {
           ..writeAsBytesSync(Im.encodeJpg(image, quality: 80));
     return compressedImage;
   }
+
   _getNumberPlate(String filePath) async {
     final Completer<Size> completer = Completer<Size>();
     Image _image = Image.file(
@@ -306,16 +307,16 @@ class _ReportAccidentState extends State<ReportAccident> {
         await textRecognizer.processImage(visionImage);
 
     String pattern =
-        r'^[A-Z]{2}[ -][0-9]{1,2}(?: [A-Z])?(?: [A-Z]{2})? [0-9]{4}$';
+        r'^[A-Z]{2}[0-9]{1,2}(?:[A-Z])?(?:[A-Z]{2})?[0-9]{4}|[A-Z]{2}[ -][0-9]{1,2}(?: [A-Z])?(?: [A-Z]{2})? [0-9]{4}$';
     RegExp regEx = RegExp(pattern);
 
-    String mailAddress = "";
+    String numberPlate = "";
     List<TextElement> _elements = [];
     for (TextBlock block in visionText.blocks) {
       for (TextLine line in block.lines) {
         print(line.text);
         if (regEx.hasMatch(line.text)) {
-          mailAddress += line.text + '\n';
+          numberPlate += line.text + '\n';
           for (TextElement element in line.elements) {
             _elements.add(element);
           }
@@ -324,10 +325,9 @@ class _ReportAccidentState extends State<ReportAccident> {
     }
 
     setState(() {
-      carNumber = mailAddress;
+      carNumber = numberPlate;
       carNumberConttroller.text = carNumber;
     });
-    print('emails- $carNumber');
+    print('carnumber- $carNumber');
   }
-
 }
